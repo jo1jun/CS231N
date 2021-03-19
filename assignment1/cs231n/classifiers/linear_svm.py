@@ -1,3 +1,4 @@
+
 from builtins import range
 import numpy as np
 from random import shuffle
@@ -30,19 +31,25 @@ def svm_loss_naive(W, X, y, reg):
     for i in range(num_train):
         scores = X[i].dot(W)
         correct_class_score = scores[y[i]]
+
         for j in range(num_classes):
             if j == y[i]:
                 continue
             margin = scores[j] - correct_class_score + 1 # note delta = 1
             if margin > 0:
                 loss += margin
+                dscores = np.zeros_like(scores)
+                dscores[y[i]], dscores[j] = -1, 1
+                dW += X[i].reshape(-1,1) @ dscores.reshape(1,-1)
 
     # Right now the loss is a sum over all training examples, but we want it
     # to be an average instead so we divide by num_train.
     loss /= num_train
+    dW /= num_train
 
     # Add regularization to the loss.
-    loss += reg * np.sum(W * W)
+    loss += 0.5 * reg * np.sum(np.square(W))
+    dW += reg * W
 
     #############################################################################
     # TODO:                                                                     #
@@ -54,7 +61,7 @@ def svm_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    pass # 위 code를 수정하여 구현.
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
@@ -78,7 +85,13 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    m = X.shape[0]
+    scores = X @ W
+    correct_class_scores = scores[np.arange(m), y].reshape(-1,1)
+    margins = np.maximum(0, scores - correct_class_scores + 1)
+    margins[np.arange(m), y] = 0 # 정답 class 간의 계산은 제외
+    loss = np.sum(margins) / m
+    loss += 0.5 * reg * np.sum(np.square(W))
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -93,7 +106,14 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    db = np.asarray(margins > 0, int)
+    db[np.arange(m), y] = 0
+    ds = np.zeros_like(scores)
+    ds[np.arange(m), y] += np.sum(-db,1)
+    ds += db
+    dW = X.T @ ds
+    dW /= m # 앞에서 곱해도 전파됨. 맨 앞에 곱해도 되고, 맨 뒤에 곱해도 됨.
+    dW += reg*W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
