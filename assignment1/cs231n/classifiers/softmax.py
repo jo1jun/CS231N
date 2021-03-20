@@ -48,10 +48,10 @@ def softmax_loss_naive(W, X, y, reg):
       dW += X[i].T.reshape(-1,1) @ (e_s * ds).reshape(1,-1)
 
     loss /= m
-    loss += 0.5 * reg * np.sum(np.square(W))
+    loss += reg * np.sum(np.square(W))
 
     dW /= m
-    dW += reg * W
+    dW += 2 * reg * W
     
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -85,15 +85,26 @@ def softmax_loss_vectorized(W, X, y, reg):
     p = e_s[np.arange(m), y] / np.sum(e_s, 1)
     loss = np.sum(-np.log(p))
     loss /= m
-    loss += 0.5 * reg * np.sum(np.square(W))
-
+    loss += reg * np.sum(np.square(W))
+    '''
     ds = np.zeros_like(s)
     ds[np.arange(m), y] -= 1 / (np.sum(e_s, 1) * p)
     ds += (e_s[np.arange(m), y] / np.square(np.sum(e_s, 1)) / p).reshape(-1,1)
     dW = X.T @ (e_s * ds)
 
     dW /= m
-    dW += reg * W
+    dW += 2 * reg * W
+    '''
+
+    # better version! 계산그래프 더 깔끔하게하고 이것도 수정!
+
+    ds = np.zeros_like(s)
+    ds += 1 / np.sum(e_s, 1, keepdims=True)
+    ds[np.arange(m), y] -= 1 / e_s[np.arange(m), y]
+    dW = X.T @ (e_s * ds)
+    dW /= m
+    dW += 2 * reg * W
+    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 

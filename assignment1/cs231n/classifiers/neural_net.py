@@ -80,7 +80,8 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        h = np.maximum(0, X @ W1 + b1)
+        scores = h @ W2 + b2
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -98,7 +99,10 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        e_s = np.exp(scores - np.max(scores, 1, keepdims=True))
+        loss = np.sum(-np.log(e_s[np.arange(N), y] / np.sum(e_s, 1)))
+        loss /= N
+        loss += reg * (np.sum(np.square(W1)) + np.sum(np.square(W2)))
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -111,7 +115,18 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        ds = np.zeros_like(scores)
+        ds += 1 / np.sum(e_s, 1, keepdims=True)
+        ds[np.arange(N), y] -= 1 / e_s[np.arange(N), y]
+        ds *= e_s
+        ds /= N
+
+        grads['b2'] = np.sum(ds, 0)
+        grads['W2'] = h.T @ ds + 2 * reg * W2
+        dm = ds @ W2.T * np.asarray(h > 0, int) # h 가 0이 아닌 통과했던 원소들만 역전파.
+                                                # element wise 로 곱하여 masking
+        grads['b1'] = np.sum(dm, 0)
+        grads['W1'] = X.T @ dm + 2 * reg * W1
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -155,8 +170,10 @@ class TwoLayerNet(object):
             # them in X_batch and y_batch respectively.                             #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-            pass
+            
+            indices = np.random.choice(X.shape[0], batch_size)
+            X_batch = X[indices]
+            y_batch = y[indices]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -172,7 +189,10 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            self.params['W1'] -= learning_rate * grads['W1']
+            self.params['b1'] -= learning_rate * grads['b1']
+            self.params['W2'] -= learning_rate * grads['W2']
+            self.params['b2'] -= learning_rate * grads['b2']
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -218,8 +238,10 @@ class TwoLayerNet(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
-
+        h = np.maximum(0, X @ self.params['W1'] + self.params['b1'])
+        scores = h @ self.params['W2'] + self.params['b2']
+        y_pred = np.argmax(scores, 1)
+        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         return y_pred

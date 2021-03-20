@@ -48,8 +48,8 @@ def svm_loss_naive(W, X, y, reg):
     dW /= num_train
 
     # Add regularization to the loss.
-    loss += 0.5 * reg * np.sum(np.square(W))
-    dW += reg * W
+    loss += reg * np.sum(np.square(W))
+    dW += 2 * reg * W
 
     #############################################################################
     # TODO:                                                                     #
@@ -91,7 +91,7 @@ def svm_loss_vectorized(W, X, y, reg):
     margins = np.maximum(0, scores - correct_class_scores + 1)
     margins[np.arange(m), y] = 0 # 정답 class 간의 계산은 제외
     loss = np.sum(margins) / m
-    loss += 0.5 * reg * np.sum(np.square(W))
+    loss += reg * np.sum(np.square(W))
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -113,7 +113,7 @@ def svm_loss_vectorized(W, X, y, reg):
     ds += db
     dW = X.T @ ds
     dW /= m # 앞에서 곱해도 전파됨. 맨 앞에 곱해도 되고, 맨 뒤에 곱해도 됨.
-    dW += reg*W
+    dW += 2*reg*W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
