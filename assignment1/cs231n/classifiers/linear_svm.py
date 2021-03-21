@@ -38,9 +38,15 @@ def svm_loss_naive(W, X, y, reg):
             margin = scores[j] - correct_class_score + 1 # note delta = 1
             if margin > 0:
                 loss += margin
+                '''
+                # slow version
                 dscores = np.zeros_like(scores)
                 dscores[y[i]], dscores[j] = -1, 1
                 dW += X[i].reshape(-1,1) @ dscores.reshape(1,-1)
+                '''
+                # fast version
+                dW[:, y[i]] -= X[i]
+                dW[:, j] += X[i]
 
     # Right now the loss is a sum over all training examples, but we want it
     # to be an average instead so we divide by num_train.
@@ -106,12 +112,21 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    db = np.asarray(margins > 0, int)
-    db[np.arange(m), y] = 0
-    ds = np.zeros_like(scores)
-    ds[np.arange(m), y] += np.sum(-db,1)
-    ds += db
-    dW = X.T @ ds
+    dmargins = np.ones_like(scores) # (m,10)
+    dmargins[np.arange(m), y] = 0
+    dmargins = np.asarray(margins > 0, int)
+
+    dc = np.sum(dmargins, 1)
+    dc *= -1
+
+    dscores1 = np.zeros_like(scores)
+    dscores1[np.arange(m), y] = dc
+
+    dscores2 = dmargins
+
+    dscores = dscores1 + dscores2
+
+    dW = X.T @ dscores
     dW /= m # 앞에서 곱해도 전파됨. 맨 앞에 곱해도 되고, 맨 뒤에 곱해도 됨.
     dW += 2*reg*W
 
