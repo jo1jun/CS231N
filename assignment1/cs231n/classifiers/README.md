@@ -1,4 +1,6 @@
-## 아래 계산 그래프들은 node들을 합쳐 더 간단하게 표현하고 더 효율적으로 계산할 수 있다. 아직 나아갈 길이 멀기도 하고 계산그래프 전공은 아니기에 더 단순화 시키진 않았다. 추후에 필요하다면 수정할 것.
+아래 계산 그래프들은 node들을 합쳐 더 간단하게 표현하고 더 효율적으로 계산할 수 있다. 
+아직 나아갈 길이 멀기도 하고 계산그래프 전공은 아니기에 더 단순화 시키진 않았다. 추후에 필요하다면 수정할 것.
+
 # linear_svm Computational Graph (non-batch)
 ![linear_svm 계산 그래프1](https://user-images.githubusercontent.com/68524289/111893314-39adcc80-8a45-11eb-8fe2-cd2303db6099.PNG)
 # linear_svm Computational Graph (batch)
