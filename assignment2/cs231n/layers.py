@@ -511,8 +511,25 @@ def conv_forward_naive(x, w, b, conv_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = x.shape
+    F, C, HH, WW = w.shape # C 는 동일.
 
+    # np.pad reference : https://numpy.org/doc/stable/reference/generated/numpy.pad.html
+    pad = conv_param['pad']
+    padded_x = np.pad(x, ((0,0), (0,0), (pad,pad), (pad,pad)), mode='constant')
+    # dimention 순으로 왼쪽, 오른쪽 pad 수를 tuple의 tuple로 입력받는다.
+
+    stride = conv_param['stride']
+    _H = int(1 + (H + 2 * pad - HH) / stride)
+    _W = int(1 + (W + 2 * pad - WW) / stride)
+    out = np.zeros((N, F, _H, _W))
+    
+    for _n in range(N):
+      for _f in range(F):
+        for _h in range(_H):
+          for _w in range(_W):
+            out[_n,_f,_h,_w] = np.sum(w[_f] * padded_x[_n, :, _h*stride:_h*stride+HH, _w*stride:_w*stride+WW]) + b[_f]
+    
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -539,8 +556,29 @@ def conv_backward_naive(dout, cache):
     # TODO: Implement the convolutional backward pass.                        #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    
+    x, w, b, conv_param = cache
+    pad = conv_param['pad']
+    stride = conv_param['stride']
+    padded_x = np.pad(x, ((0,0), (0,0), (pad,pad), (pad,pad)), mode='constant')
 
-    pass
+    N, C, H, W = x.shape
+    F, C, HH, WW = w.shape
+    _, _, _H, _W = dout.shape
+    db = np.zeros(F)
+    dw = np.zeros_like(w)
+    dx = np.zeros_like(x)
+    dpadded_x = np.zeros_like(padded_x)
+
+    for _n in range(N):
+      for _f in range(F):
+        for _h in range(_H):
+          for _w in range(_W):
+            db[_f] += dout[_n,_f,_h,_w]
+            dh = np.zeros((C, HH, WW)) + dout[_n,_f,_h,_w]
+            dw[_f] += dh * padded_x[_n, :, _h*stride:_h*stride+HH, _w*stride:_w*stride+WW]
+            dpadded_x[_n, :, _h*stride:_h*stride+HH, _w*stride:_w*stride+WW] += dh * w[_f]
+    dx = dpadded_x[:,:,pad:-pad,pad:-pad]
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -574,7 +612,20 @@ def max_pool_forward_naive(x, pool_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = x.shape
+    PH = pool_param['pool_height']
+    PW = pool_param['pool_width']
+    stride = pool_param['stride']
+    _H = int(1 + (H - PH) / stride)
+    _W = int(1 + (W - PW) / stride)
+
+    out = np.zeros((N, C, _H, _W))
+    
+    for _n in range(N):
+      for _c in range(C):
+        for _h in range(_H):
+          for _w in range(_W):
+            out[_n,_c,_h,_w] = np.max(x[_n, _c, _h*stride:_h*stride+PH, _w*stride:_w*stride+PW])
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -601,7 +652,26 @@ def max_pool_backward_naive(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    x, pool_param = cache
+
+    N, C, H, W = x.shape
+    PH = pool_param['pool_height']
+    PW = pool_param['pool_width']
+    stride = pool_param['stride']
+    _H = int(1 + (H - PH) / stride)
+    _W = int(1 + (W - PW) / stride)
+
+    dx = np.zeros_like(x)
+
+    for _n in range(N):
+      for _c in range(C):
+        for _h in range(_H):
+          for _w in range(_W):
+            field = x[_n, _c, _h*stride:_h*stride+PH, _w*stride:_w*stride+PW]
+            max_idx = np.unravel_index(np.argmax(field), field.shape)
+            dx[_n, _c, _h*stride:_h*stride+PH, _w*stride:_w*stride+PW][max_idx] += dout[_n, _c, _h, _w]
+    # unravel_indx : 2차원 배열을 argmax 할 경우 scalar 값이 나오는데 이 값을 2차원 배열의 index로 변환.
+    # https://numpy.org/doc/stable/reference/generated/numpy.unravel_index.html#numpy.unravel_index
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################

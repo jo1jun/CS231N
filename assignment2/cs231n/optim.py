@@ -69,7 +69,9 @@ def sgd_momentum(w, dw, config=None):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    v = config['momentum'] * v - config['learning_rate'] * dw
+    w += v
+    next_w = w
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -107,7 +109,10 @@ def rmsprop(w, dw, config=None):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+
+    config['cache'] = config['decay_rate'] * config['cache'] + (1 - config['decay_rate']) * dw**2
+    w -= config['learning_rate'] * dw / (np.sqrt(config['cache']) + config['epsilon'])
+    next_w = w
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -151,8 +156,15 @@ def adam(w, dw, config=None):
     # using it in any calculations.                                           #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
+    
+    # reference : https://arxiv.org/pdf/1412.6980.pdf
+    config['t'] += 1 # 논문을 보면 수렴을 할 때까지 t 에 1씩 더한다.
+    config['m'] = config['beta1']*config['m'] + (1-config['beta1'])*dw
+    mt = config['m'] / (1-config['beta1']**config['t']) # mt : first unbiased
+    config['v'] = config['beta2']*config['v'] + (1-config['beta2'])*(dw**2)
+    vt = config['v'] / (1-config['beta2']**config['t']) # vt : second unbiased
+    w -= config['learning_rate'] * mt / (np.sqrt(vt) + config['epsilon'])
+    next_w = w
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
