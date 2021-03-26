@@ -578,7 +578,7 @@ def conv_backward_naive(dout, cache):
             dh = np.zeros((C, HH, WW)) + dout[_n,_f,_h,_w]
             dw[_f] += dh * padded_x[_n, :, _h*stride:_h*stride+HH, _w*stride:_w*stride+WW]
             dpadded_x[_n, :, _h*stride:_h*stride+HH, _w*stride:_w*stride+WW] += dh * w[_f]
-    dx = dpadded_x[:,:,pad:-pad,pad:-pad]
+    dx = dpadded_x[:,:,pad:-pad,pad:-pad] # pad 제거
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -669,7 +669,7 @@ def max_pool_backward_naive(dout, cache):
           for _w in range(_W):
             field = x[_n, _c, _h*stride:_h*stride+PH, _w*stride:_w*stride+PW]
             max_idx = np.unravel_index(np.argmax(field), field.shape)
-            dx[_n, _c, _h*stride:_h*stride+PH, _w*stride:_w*stride+PW][max_idx] += dout[_n, _c, _h, _w]
+            dx[_n, _c, _h*stride:_h*stride+PH, _w*stride:_w*stride+PW][max_idx] = dout[_n, _c, _h, _w]
     # unravel_indx : 2차원 배열을 argmax 할 경우 scalar 값이 나오는데 이 값을 2차원 배열의 index로 변환.
     # https://numpy.org/doc/stable/reference/generated/numpy.unravel_index.html#numpy.unravel_index
 
