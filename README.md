@@ -1,7 +1,7 @@
 # CS231N
 
 ## assignment1
-### hand-made computational graphs 
+### hand-made computational graphs (https://github.com/jo1jun/CS231N/tree/main/assignment1/cs231n/classifiers)
 #### linear_svm Computational Graph (non-batch)
 #### linear_svm Computational Graph (batch)
 #### softmax Computational Graph (non-batch)
@@ -9,7 +9,7 @@
 #### neural net Computational Graph (batch)
 
 ## assignment2
-### hand-made computational graphs 
+### hand-made computational graphs (https://github.com/jo1jun/CS231N/tree/main/assignment2/cs231n)
 #### convolution Computational Graph (non-batch, non-filterwise)
 #### max_pooling Computational Graph (non-batch, non-channelwise)
 #### batch_norm (batch)
