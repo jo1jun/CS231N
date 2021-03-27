@@ -6,3 +6,7 @@
 ![conv](https://user-images.githubusercontent.com/68524289/112561520-c3301680-8e18-11eb-8be7-478f4084e71b.PNG)
 ## max_pooling Computational Graph (non-batch, non-channel wise)
 ![pool](https://user-images.githubusercontent.com/68524289/112561559-d6db7d00-8e18-11eb-83f2-e6f6f7d47ad7.PNG)
+## batch_norm (batch)
+![batch_norm1](https://user-images.githubusercontent.com/68524289/112711936-7da24500-8f0f-11eb-8985-1cad989b983e.png)
+## batch_norm_alt (batch)
+![batch_norm2](https://user-images.githubusercontent.com/68524289/112711955-a3c7e500-8f0f-11eb-9643-285abc9c8623.png)
