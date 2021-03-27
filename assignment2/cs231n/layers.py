@@ -200,7 +200,16 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        sample_mean = np.mean(x,0)
+        sample_var = np.var(x,0)
+        norm_x = (x - sample_mean) / np.sqrt(sample_var + eps)
+        out = gamma * norm_x + beta
+
+        cache = (x, sample_mean, sample_var, eps, norm_x, gamma)
+
+        # test time 에 사용할 running mean&var.
+        running_mean = momentum * running_mean + (1 - momentum) * sample_mean
+        running_var = momentum * running_var + (1 - momentum) * sample_var
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -215,7 +224,8 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        norm_x = (x - running_mean) / np.sqrt(running_var + eps)
+        out = gamma * norm_x + beta
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -256,8 +266,18 @@ def batchnorm_backward(dout, cache):
     # might prove to be helpful.                                              #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
+    
+    (x, sample_mean, sample_var, eps, norm_x, gamma) = cache
+    dbeta = np.sum(dout, 0)
+    dgamma = np.sum(dout * norm_x, 0)
+    dnorm_x = dout * gamma
+    dx = np.zeros_like(x)
+    dx += dnorm_x / np.sqrt(sample_var + eps) # A
+    dx += np.sum(-dnorm_x / np.sqrt(sample_var + eps), 0) / x.shape[0] # sum(-A) / N
+    # D, B, C 순서.
+    dx += 2 / x.shape[0] * (np.sum((x - sample_mean) * (- 1/ x.shape[0])) + (x - sample_mean)) * \
+    np.sum(-(x-sample_mean) / (sample_var + eps) * dnorm_x, 0) * \
+    1/2 * (sample_var + eps) ** (-1/2)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -289,10 +309,27 @@ def batchnorm_backward_alt(dout, cache):
     # After computing the gradient with respect to the centered inputs, you   #
     # should be able to compute gradients with respect to the inputs in a     #
     # single statement; our implementation fits on a single 80-character line.#
-    ###########################################################################
+    #################W##########################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    
+    # 위 구현 또한 chain rule을 기반으로 여러 node를 합쳐 구현해서 속도의 차이가 크지 않다.
+    #
 
-    pass
+    (x, sample_mean, sample_var, eps, norm_x, gamma) = cache
+    dbeta = np.sum(dout, 0)
+    dgamma = np.sum(dout * norm_x, 0)
+
+    A = dout * gamma
+    Z = x - sample_mean
+    B = -Z / (sample_var + eps)
+    C = 1 / np.sqrt(sample_var + eps)
+    D = ((sample_var + eps) ** (-1/2))/2
+    BA = np.sum(B * A, 0)
+
+    dx1 = 2 / x.shape[0] * Z * D * BA
+    dx2 = 1 / x.shape[0] * (np.sum(-2 / x.shape[0] * Z * D * BA, 0) - np.sum(C * A, 0))
+    dx3 = C * A
+    dx = dx1 + dx2 + dx3
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
