@@ -16,3 +16,6 @@
 ![batch_norm1](https://user-images.githubusercontent.com/68524289/112711936-7da24500-8f0f-11eb-8985-1cad989b983e.png)
 ## batch_norm_alt (batch)
 ![batch_norm2](https://user-images.githubusercontent.com/68524289/112711955-a3c7e500-8f0f-11eb-9643-285abc9c8623.png)
+## layer_norm (batch)
+![layernorm](https://user-images.githubusercontent.com/68524289/112743795-59a93700-8fd5-11eb-9cdd-545ab176a414.png)
+
