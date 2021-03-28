@@ -1,11 +1,37 @@
-# *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-pass
-
-# *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 from .layers import *
 from .fast_layers import *
 
+# *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+
+def affine_bn_relu_forward(x, w, b, gamma, beta, bn_param):
+    a, fc_cache = affine_forward(x, w, b)
+    c, bn_cache = batchnorm_forward(a, gamma, beta, bn_param)
+    out, relu_cache = relu_forward(c)
+    cache = (fc_cache, bn_cache, relu_cache)
+    return out, cache
+
+def affine_bn_relu_backward(dout, cache):
+    fc_cache, bn_cache, relu_cache = cache
+    dc = relu_backward(dout, relu_cache)
+    da, dgamma, dbeta = batchnorm_backward_alt(dc, bn_cache)
+    dx, dw, db = affine_backward(da, fc_cache)
+    return dx, dw, db, dgamma, dbeta
+
+def affine_ln_relu_forward(x, w, b, gamma, beta, ln_param):
+    a, fc_cache = affine_forward(x, w, b)
+    c, ln_cache = layernorm_forward(a, gamma, beta, ln_param)
+    out, relu_cache = relu_forward(c)
+    cache = (fc_cache, ln_cache, relu_cache)
+    return out, cache
+
+def affine_ln_relu_backward(dout, cache):
+    fc_cache, ln_cache, relu_cache = cache
+    dc = relu_backward(dout, relu_cache)
+    da, dgamma, dbeta = layernorm_backward(dc, ln_cache)
+    dx, dw, db = affine_backward(da, fc_cache)
+    return dx, dw, db, dgamma, dbeta
+
+# *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
 def affine_relu_forward(x, w, b):
     """

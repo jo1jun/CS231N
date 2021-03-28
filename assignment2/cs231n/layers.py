@@ -268,14 +268,15 @@ def batchnorm_backward(dout, cache):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
     (x, sample_mean, sample_var, eps, norm_x, gamma) = cache
+    N = x.shape[0]
     dbeta = np.sum(dout, 0)
     dgamma = np.sum(dout * norm_x, 0)
     dnorm_x = dout * gamma
     dx = np.zeros_like(x)
     dx += dnorm_x / np.sqrt(sample_var + eps) # A
-    dx += np.sum(-dnorm_x / np.sqrt(sample_var + eps), 0) / x.shape[0] # sum(-A) / N
+    dx += np.sum(-dnorm_x / np.sqrt(sample_var + eps), 0) / N # sum(-A) / N
     # D, B, C 순서.
-    dx += 2 / x.shape[0] * (np.sum((x - sample_mean) * (- 1/ x.shape[0])) + (x - sample_mean)) * \
+    dx += 2 / N * (np.sum((x - sample_mean) * (- 1/ N)) + (x - sample_mean)) * \
     np.sum(-(x-sample_mean) / (sample_var + eps) * dnorm_x, 0) * \
     1/2 * (sample_var + eps) ** (-1/2)
 
@@ -313,9 +314,9 @@ def batchnorm_backward_alt(dout, cache):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
     # 위 구현 또한 chain rule을 기반으로 여러 node를 합쳐 구현해서 속도의 차이가 크지 않다.
-    #
 
     (x, sample_mean, sample_var, eps, norm_x, gamma) = cache
+    N = x.shape[0]
     dbeta = np.sum(dout, 0)
     dgamma = np.sum(dout * norm_x, 0)
 
@@ -326,8 +327,8 @@ def batchnorm_backward_alt(dout, cache):
     D = ((sample_var + eps) ** (-1/2))/2
     BA = np.sum(B * A, 0)
 
-    dx1 = 2 / x.shape[0] * Z * D * BA
-    dx2 = 1 / x.shape[0] * (np.sum(-2 / x.shape[0] * Z * D * BA, 0) - np.sum(C * A, 0))
+    dx1 = 2 / N * Z * D * BA
+    dx2 = 1 / N * (np.sum(-2 / N * Z * D * BA, 0) - np.sum(C * A, 0))
     dx3 = C * A
     dx = dx1 + dx2 + dx3
 
@@ -375,7 +376,12 @@ def layernorm_forward(x, gamma, beta, ln_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    sample_mean = np.mean(x,1, keepdims=True)
+    sample_var = np.var(x,1, keepdims=True)
+    norm_x = (x - sample_mean) / np.sqrt(sample_var + eps)
+    out = gamma * norm_x + beta
+
+    cache = (x, sample_mean, sample_var, eps, norm_x, gamma)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -410,7 +416,23 @@ def layernorm_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    (x, sample_mean, sample_var, eps, norm_x, gamma) = cache
+    D = x.shape[1]
+
+    dbeta = np.sum(dout, 0)
+    dgamma = np.sum(dout * norm_x, 0)
+
+    A = dout * gamma
+    Z = x - sample_mean
+    B = -Z / (sample_var + eps)
+    C = 1 / np.sqrt(sample_var + eps)
+    E = ((sample_var + eps) ** (-1/2))/2
+    BA = np.sum(B * A, 1, keepdims=True)
+
+    dx1 = 2 / D * Z * E * BA
+    dx2 = 1 / D * (np.sum(-2 / D * Z * E * BA, 1, keepdims=True) - np.sum(C * A, 1, keepdims=True))
+    dx3 = C * A
+    dx = dx1 + dx2 + dx3
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
