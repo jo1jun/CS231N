@@ -14,3 +14,4 @@
 #### max_pooling Computational Graph (non-batch, non-channelwise)
 #### batch_norm (batch)
 #### batch_norm_alt (batch)
+#### layer_norm (batch)
