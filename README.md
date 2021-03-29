@@ -15,3 +15,5 @@
 #### batch_norm (batch)
 #### batch_norm_alt (batch)
 #### layer_norm (batch)
+#### spatial_batch_norm (batch)
+#### spatial_group_norm (batch)
