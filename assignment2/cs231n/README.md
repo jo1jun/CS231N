@@ -17,5 +17,8 @@
 ## batch_norm_alt (batch)
 ![batch_norm2](https://user-images.githubusercontent.com/68524289/112711955-a3c7e500-8f0f-11eb-9643-285abc9c8623.png)
 ## layer_norm (batch)
-![layernorm](https://user-images.githubusercontent.com/68524289/112743795-59a93700-8fd5-11eb-9cdd-545ab176a414.png)
-
+![layernorm](https://user-images.githubusercontent.com/68524289/112798854-77939c00-90a8-11eb-9337-7cb122e5d87c.png)
+## spatial_batch_norm (batch)
+![spatial_batchnorm](https://user-images.githubusercontent.com/68524289/112798865-7bbfb980-90a8-11eb-94fc-bc7d4edd08ba.png)
+## sptatial_group_norm (batch)
+![spatial_groupnorm](https://user-images.githubusercontent.com/68524289/112798881-81b59a80-90a8-11eb-9166-9f1bbe2fb06f.png)
