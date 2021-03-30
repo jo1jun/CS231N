@@ -190,6 +190,7 @@ class FullyConnectedNet(object):
         self.dtype = dtype
         self.params = {}
 
+
         ############################################################################
         # TODO: Initialize the parameters of the network, storing all values in    #
         # the self.params dictionary. Store weights and biases for the first layer #
@@ -277,21 +278,29 @@ class FullyConnectedNet(object):
         # layer, etc.                                                              #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        
+
         caches = {}
         a = X
-
         if self.normalization == "batchnorm":
           for i in range(1, self.num_layers):
             a, caches['layer' + str(i)] = affine_bn_relu_forward(a, self.params['W' + str(i)], self.params['b' + str(i)],\
             self.params['gamma' + str(i)], self.params['beta' + str(i)], self.bn_params[i-1])
+            if self.use_dropout:
+              a, cache = dropout_forward(a, self.dropout_param)
+              caches['layer' + str(i)] = (*caches['layer' + str(i)], cache)
         elif self.normalization == "layernorm":
           for i in range(1, self.num_layers):
             a, caches['layer' + str(i)] = affine_ln_relu_forward(a, self.params['W' + str(i)], self.params['b' + str(i)],\
             self.params['gamma' + str(i)], self.params['beta' + str(i)], self.bn_params[i-1])
+            if self.use_dropout:
+              a, cache = dropout_forward(a, self.dropout_param)
+              caches['layer' + str(i)] = (*caches['layer' + str(i)], cache)
         else:
           for i in range(1, self.num_layers):
             a, caches['layer' + str(i)] = affine_relu_forward(a, self.params['W' + str(i)], self.params['b' + str(i)])
+            if self.use_dropout:
+              a, cache = dropout_forward(a, self.dropout_param)
+              caches['layer' + str(i)] = (*caches['layer' + str(i)], cache)
 
         i += 1
         scores, caches['layer' + str(i)] = affine_forward(a, self.params['W' + str(i)], self.params['b' + str(i)])
@@ -328,24 +337,41 @@ class FullyConnectedNet(object):
         affine_backward(dout, caches["layer" + str(self.num_layers)])
 
         grads["W" + str(self.num_layers)] += self.reg * self.params["W" + str(self.num_layers)]
-
+ 
         if self.normalization == "batchnorm":
           for i in range(self.num_layers - 1, 0, -1):
             loss += 0.5 * self.reg * np.sum(np.square(self.params["W" + str(i)]))
-            dh, grads["W" + str(i)], grads["b" + str(i)], grads["gamma" + str(i)], grads["beta" + str(i)] = \
-            affine_bn_relu_backward(dh, caches["layer" + str(i)])
-            grads["W" + str(i)] += self.reg * self.params["W" + str(i)]
+            if self.use_dropout:
+              dh = dropout_backward(dh, caches["layer" + str(i)][-1])
+              dh, grads["W" + str(i)], grads["b" + str(i)], grads["gamma" + str(i)], grads["beta" + str(i)] = \
+              affine_bn_relu_backward(dh, caches["layer" + str(i)][:-1])
+              grads["W" + str(i)] += self.reg * self.params["W" + str(i)]
+            else:
+              dh, grads["W" + str(i)], grads["b" + str(i)], grads["gamma" + str(i)], grads["beta" + str(i)] = \
+              affine_bn_relu_backward(dh, caches["layer" + str(i)])
+              grads["W" + str(i)] += self.reg * self.params["W" + str(i)]
         elif self.normalization == "layernorm":
           for i in range(self.num_layers - 1, 0, -1):
             loss += 0.5 * self.reg * np.sum(np.square(self.params["W" + str(i)]))
-            dh, grads["W" + str(i)], grads["b" + str(i)], grads["gamma" + str(i)], grads["beta" + str(i)] = \
-            affine_ln_relu_backward(dh, caches["layer" + str(i)])
-            grads["W" + str(i)] += self.reg * self.params["W" + str(i)]
+            if self.use_dropout:
+              dh = dropout_backward(dh, caches["layer" + str(i)][-1])
+              dh, grads["W" + str(i)], grads["b" + str(i)], grads["gamma" + str(i)], grads["beta" + str(i)] = \
+              affine_ln_relu_backward(dh, caches["layer" + str(i)][:-1])
+              grads["W" + str(i)] += self.reg * self.params["W" + str(i)]
+            else:
+              dh, grads["W" + str(i)], grads["b" + str(i)], grads["gamma" + str(i)], grads["beta" + str(i)] = \
+              affine_ln_relu_backward(dh, caches["layer" + str(i)])
+              grads["W" + str(i)] += self.reg * self.params["W" + str(i)]
         else: 
           for i in range(self.num_layers - 1, 0, -1):
             loss += 0.5 * self.reg * np.sum(np.square(self.params["W" + str(i)]))
-            dh, grads["W" + str(i)], grads["b" + str(i)] = affine_relu_backward(dh, caches["layer" + str(i)])
-            grads["W" + str(i)] += self.reg * self.params["W" + str(i)]
+            if self.use_dropout:
+              dh = dropout_backward(dh, caches["layer" + str(i)][-1])
+              dh, grads["W" + str(i)], grads["b" + str(i)] = affine_relu_backward(dh, caches["layer" + str(i)][:-1])
+              grads["W" + str(i)] += self.reg * self.params["W" + str(i)]
+            else:
+              dh, grads["W" + str(i)], grads["b" + str(i)] = affine_relu_backward(dh, caches["layer" + str(i)])
+              grads["W" + str(i)] += self.reg * self.params["W" + str(i)]
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
