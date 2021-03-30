@@ -1,4 +1,4 @@
-# CS231N
+# CS231N (2020)
 
 ## assignment1
 ### hand-made computational graphs (https://github.com/jo1jun/CS231N/tree/main/assignment1/cs231n/classifiers)
