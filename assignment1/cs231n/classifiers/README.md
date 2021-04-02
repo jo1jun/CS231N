@@ -9,7 +9,7 @@
 처음 학습 과정에서 명확한 이해를 위해 그려볼 순 있지만 이미 잘 구현된 framwork 들을 활용하면 된다.
 
 # linear_svm Computational Graph (non-batch)
-![linear_svm 계산 그래프1](https://user-images.githubusercontent.com/68524289/111893314-39adcc80-8a45-11eb-8fe2-cd2303db6099.PNG)
+![linear_svm 계산 그래프1](https://user-images.githubusercontent.com/68524289/113422310-6a0f4680-9407-11eb-8341-3490b0510c22.jpg)
 # linear_svm Computational Graph (batch)
 ![linear_svm 계산 그래프2](https://user-images.githubusercontent.com/68524289/111893316-3e728080-8a45-11eb-83e0-45e1645172c6.PNG)
 # softmax Computational Graph (non-batch)
