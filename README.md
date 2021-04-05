@@ -17,3 +17,7 @@
 #### layer_norm (batch)
 #### spatial_batch_norm (batch)
 #### spatial_group_norm (batch)
+
+## assignment3
+### hand-made computational graphs (https://github.com/jo1jun/CS231N/tree/main/assignment3/cs231n)
+#### RNN (batch)
