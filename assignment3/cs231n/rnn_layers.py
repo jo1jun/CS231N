@@ -36,7 +36,9 @@ def rnn_step_forward(x, prev_h, Wx, Wh, b):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    next_h = np.tanh(x @ Wx + prev_h @ Wh + b)
+
+    cache = (x, prev_h, Wx, Wh, next_h)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -69,7 +71,14 @@ def rnn_step_backward(dnext_h, cache):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    (x, prev_h, Wx, Wh, next_h) = cache
+
+    dnext_h = (1 - next_h**2) * dnext_h
+    db = np.sum(dnext_h, 0)
+    dWh = prev_h.T @ dnext_h
+    dprev_h = dnext_h @ Wh.T
+    dWx = x.T @ dnext_h
+    dx = dnext_h @ Wx.T
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -104,7 +113,17 @@ def rnn_forward(x, h0, Wx, Wh, b):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, T, D = x.shape
+    H = h0.shape[1]
+
+    h = np.zeros((N, T, H))
+    cache = []
+
+    for t in range(T):
+      next_h, _ = rnn_step_forward(x[:,t,:], h0, Wx, Wh, b)
+      h[:,t,:] = next_h
+      cache.append((x[:,t,:], h0, Wx, Wh, next_h))
+      h0 = next_h
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -140,7 +159,18 @@ def rnn_backward(dh, cache):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, T, H = dh.shape
+    D = cache[0][0].shape[1] # 단일 time step x 의 shape
+    dx = np.zeros((N, T, D))
+    dWx = np.zeros((D, H))
+    dWh = np.zeros((H, H))
+    db = np.zeros(H)
+    dh0 = np.zeros((N, H))
+    for t in range(T-1, -1, -1):
+      dx[:,t,:], dh0, _dWx, _dWh, _db = rnn_step_backward(dh[:,t,:] + dh0, cache[t])
+      dWx += _dWx
+      dWh += _dWh
+      db += _db
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -171,8 +201,9 @@ def word_embedding_forward(x, W):
     # HINT: This can be done in one line using NumPy's array indexing.           #
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
+    
+    out = W[x]  # x 의 값이 W 의 index 를 의미한다.
+    cache = (x, W)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -205,7 +236,10 @@ def word_embedding_backward(dout, cache):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    (x, W) = cache
+    dW = np.zeros_like(W)
+    np.add.at(dW, x, dout) 
+    # W 는 x 의 값을 index 로 하므로 x 를 index 로 넘겨주고 순서대로 dout 값을 dW 에 더해준다.
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
