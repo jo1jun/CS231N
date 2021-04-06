@@ -151,7 +151,41 @@ class CaptioningRNN(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # forward
+        # (1)
+        h0, affine1_cache = affine_forward(features, W_proj, b_proj)
+
+        # (2)
+        embeded_captions_in, embed_cache = word_embedding_forward(captions_in, W_embed)
+
+        # (3)
+        if self.cell_type == "rnn":
+          h, rnn_cache = rnn_forward(embeded_captions_in, h0, Wx, Wh, b)
+        else:
+          pass
+
+        # (4)
+        scores, affine2_cache = temporal_affine_forward(h, W_vocab, b_vocab)
+
+        # (5) 
+        loss, dout = temporal_softmax_loss(scores, captions_out, mask, verbose=False)
+
+        # backward
+
+        # (4)
+        dh, grads['W_vocab'], grads['b_vocab'] = temporal_affine_backward(dout, affine2_cache)
+
+        # (3)
+        if self.cell_type == "rnn":
+          dembeded_captions_in, dh0, grads['Wx'], grads['Wh'], grads['b'] = rnn_backward(dh, rnn_cache)
+        else:
+          pass
+        
+        # (2)
+        grads['W_embed'] = word_embedding_backward(dembeded_captions_in, embed_cache)
+        
+        # (1)
+        _, grads['W_proj'], grads['b_proj'] = affine_backward(dh0, affine1_cache)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -219,7 +253,17 @@ class CaptioningRNN(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        next_x = np.full(features.shape[0], self._start)
+        next_h, _ = affine_forward(features, W_proj, b_proj) # (1)
+        
+        if self.cell_type == "rnn":
+          for i in range(max_length):
+            embeded_next_x, _ = word_embedding_forward(next_x, W_embed) # (2)
+            next_h, _ = rnn_step_forward(embeded_next_x, next_h, Wx, Wh, b) # (2)
+            score, _ = affine_forward(next_h, W_vocab, b_vocab) # (3)
+            captions[:,i] =  next_x = np.argmax(score,1) # (4)
+        else:
+          pass
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
