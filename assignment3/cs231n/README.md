@@ -10,3 +10,5 @@
 
 ## RNN (batch)
 ![rnn](https://user-images.githubusercontent.com/68524289/113530294-993cd800-9600-11eb-9fc3-dbc15f320f66.png)
+## LSTM (batch)
+![LSTM](https://user-images.githubusercontent.com/68524289/113802031-f23d7500-9794-11eb-9a59-8f2859e57553.PNG)
