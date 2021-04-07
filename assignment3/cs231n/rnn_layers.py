@@ -117,12 +117,11 @@ def rnn_forward(x, h0, Wx, Wh, b):
     H = h0.shape[1]
 
     h = np.zeros((N, T, H))
-    cache = []
+    cache = [0 for i in range(T)]
 
     for t in range(T):
-      next_h, _ = rnn_step_forward(x[:,t,:], h0, Wx, Wh, b)
+      next_h, cache[t] = rnn_step_forward(x[:,t,:], h0, Wx, Wh, b)
       h[:,t,:] = next_h
-      cache.append((x[:,t,:], h0, Wx, Wh, next_h))
       h0 = next_h
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -291,7 +290,17 @@ def lstm_step_forward(x, prev_h, prev_c, Wx, Wh, b):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    a = x @ Wx + prev_h @ Wh + b
+    a_i, a_f, a_o, a_g = np.split(a, 4, 1) # split 하지 않고 indexing 으로도 해결 가능.
+    i = sigmoid(a_i)
+    f = sigmoid(a_f)
+    o = sigmoid(a_o)
+    g = np.tanh(a_g)
+
+    next_c = f * prev_c + i * g
+    next_h = o * np.tanh(next_c)
+
+    cache = (x, Wx, prev_h, Wh, prev_c, next_c, i, f, o, g)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -327,7 +336,25 @@ def lstm_step_backward(dnext_h, dnext_c, cache):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    (x, Wx, prev_h, Wh, prev_c, next_c, i, f, o, g) = cache
+
+    dnext_c = dnext_c + (1 - np.tanh(next_c)**2) * o * dnext_h
+    dprev_c = dnext_c * f
+
+    dnext_h = dnext_h * np.tanh(next_c)
+    
+    da_i = dnext_c*g*i*(1-i)
+    da_f = f*(1-f)*dnext_c*prev_c
+    da_o = dnext_h*o*(1-o)
+    da_g = (1 - g**2)*dnext_c*i
+
+    da = np.hstack((da_i, da_f, da_o, da_g))
+    
+    db = np.sum(da, 0)
+    dx = da @ Wx.T
+    dWx = x.T @ da
+    dWh = prev_h.T @ da
+    dprev_h = da @ Wh.T
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -366,7 +393,19 @@ def lstm_forward(x, h0, Wx, Wh, b):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, T, D = x.shape
+    H = h0.shape[1]
+
+    h = np.zeros((N, T, H))
+    prev_c = np.zeros_like(h0)
+    prev_h = h0
+    cache = [0 for i in range(T)]
+
+    for t in range(T):
+      next_h, next_c, cache[t] = lstm_step_forward(x[:,t,:], prev_h, prev_c, Wx, Wh, b)
+      h[:,t,:] = next_h
+      prev_h = next_h
+      prev_c = next_c
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -398,7 +437,20 @@ def lstm_backward(dh, cache):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, T, H = dh.shape
+    D = cache[0][0].shape[1] # 단일 time step x 의 shape
+    dx = np.zeros((N, T, D))
+    dWx = np.zeros((D, 4*H))
+    dWh = np.zeros((H, 4*H))
+    db = np.zeros(4*H)
+    dh0 = np.zeros((N, H))
+    dc0 = np.zeros((N, H))
+
+    for t in range(T-1, -1, -1):
+      dx[:,t,:], dh0, dc0, _dWx, _dWh, _db = lstm_step_backward(dh[:,t,:] + dh0, dc0, cache[t])
+      dWx += _dWx
+      dWh += _dWh
+      db += _db
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
