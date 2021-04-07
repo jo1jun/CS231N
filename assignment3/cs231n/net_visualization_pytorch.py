@@ -34,7 +34,11 @@ def compute_saliency_maps(X, y, model):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    scores = model(X)
+    target_scores = scores.gather(1, y.view(-1,1)).squeeze()
+    target_scores_sum = torch.sum(target_scores) # 합산해서 scalar 로 만들고
+    target_scores_sum.backward() # backward. (덧셈 노드에선 그대로 흘러가서 상관 없다.)
+    saliency, _ = X.grad.abs().max(dim=1)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -75,8 +79,14 @@ def make_fooling_image(X, target_y, model):
     # You can print your progress over iterations to check your algorithm.       #
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
+    
+    for i in range(20):
+      scores = model(X_fooling)
+      scores[0, target_y].backward()
+      dx = learning_rate * X_fooling.grad / (X_fooling.grad ** 2).sum().sqrt()
+      with torch.no_grad():
+        X_fooling += dx
+      X_fooling.grad.zero_()
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -94,7 +104,12 @@ def class_visualization_update_step(img, model, target_y, l2_reg, learning_rate)
     ########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    scores = model(img)
+    target_scores = scores[0, target_y] - l2_reg * (img ** 2).sum()
+    target_scores.backward()
+    with torch.no_grad():
+      img += learning_rate * img.grad
+    img.grad.data.zero_()
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ########################################################################
