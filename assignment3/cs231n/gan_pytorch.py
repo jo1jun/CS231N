@@ -11,8 +11,8 @@ import PIL
 
 NOISE_DIM = 96
 
-dtype = torch.FloatTensor
-#dtype = torch.cuda.FloatTensor ## UNCOMMENT THIS LINE IF YOU'RE ON A GPU!
+#dtype = torch.FloatTensor
+dtype = torch.cuda.FloatTensor ## UNCOMMENT THIS LINE IF YOU'RE ON A GPU!
 
 def sample_noise(batch_size, dim, seed=None):
     """
@@ -31,7 +31,7 @@ def sample_noise(batch_size, dim, seed=None):
         
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    return torch.rand(batch_size, dim)*2 - 1
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
@@ -52,7 +52,14 @@ def discriminator(seed=None):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    model = nn.Sequential(
+      nn.Flatten(),
+      nn.Linear(784, 256, True),
+      nn.LeakyReLU(0.01),
+      nn.Linear(256, 256, True),
+      nn.LeakyReLU(0.01),
+      nn.Linear(256, 1)
+    )
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -77,7 +84,16 @@ def generator(noise_dim=NOISE_DIM, seed=None):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    model = nn.Sequential(
+      nn.Linear(noise_dim, 1024, True),
+      nn.ReLU(),
+      nn.Linear(1024, 1024, True),
+      nn.ReLU(),
+      nn.Linear(1024, 784, True),
+      nn.Tanh()
+    )
+
+    return model
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -117,8 +133,10 @@ def discriminator_loss(logits_real, logits_fake):
     """
     loss = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
+    
+    true_labels = torch.ones_like(logits_real).type(dtype)
+    false_labels = torch.zeros_like(logits_fake).type(dtype)
+    loss = bce_loss(logits_real, true_labels) + bce_loss(logits_fake, false_labels)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return loss
@@ -136,7 +154,8 @@ def generator_loss(logits_fake):
     loss = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    true_labels = torch.ones_like(logits_fake)
+    loss = bce_loss(logits_fake, true_labels)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return loss
@@ -155,7 +174,7 @@ def get_optimizer(model):
     optimizer = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    optimizer = optim.Adam(model.parameters(), lr=1e-3, betas=(0.5, 0.999))
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return optimizer
@@ -265,7 +284,7 @@ def run_a_gan(D, G, D_solver, G_solver, discriminator_loss, generator_loss, load
             logits_real = D(2* (real_data - 0.5)).type(dtype)
 
             g_fake_seed = sample_noise(batch_size, noise_size).type(dtype)
-            fake_images = G(g_fake_seed).detach()
+            fake_images = G(g_fake_seed) # detach -> autograd off -> no computational graph
             logits_fake = D(fake_images.view(batch_size, 1, 28, 28))
 
             d_total_error = discriminator_loss(logits_real, logits_fake)
@@ -277,6 +296,7 @@ def run_a_gan(D, G, D_solver, G_solver, discriminator_loss, generator_loss, load
             fake_images = G(g_fake_seed)
 
             gen_logits_fake = D(fake_images.view(batch_size, 1, 28, 28))
+
             g_error = generator_loss(gen_logits_fake)
             g_error.backward()
             G_solver.step()
