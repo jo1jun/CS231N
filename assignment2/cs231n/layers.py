@@ -482,8 +482,8 @@ def dropout_forward(x, dropout_param):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         mask = (np.random.rand(*x.shape) < p) / p
-        # 계산의 효율성을 위해 test time 에 p 를 나누지 않고
-        # train time 에 p 를 곱해준다.
+        # 계산의 효율성을 위해 test time 에 p 를 곱하지 않고
+        # train time 에 p 를 나누어준다.
         out = x * mask
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
