@@ -8,7 +8,7 @@
 #### softmax (batch)
 #### neural net (batch)
 
-## assignment2Cancel changes
+## assignment2
 ### hand-made computational graphs (https://github.com/jo1jun/CS231N/tree/main/assignment2/cs231n)
 #### convolution (non-batch, non-filterwise)
 #### max_pooling (non-batch, non-channelwise)
